@@ -20,7 +20,7 @@ from typing import Dict
 import pymongo
 import pandas as pd
 import math
-myclient = pymongo.MongoClient("mongodb+srv://vladha:"+urllib.parse.quote("Carramba123@")+"@cluster0.swken.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+myclient = pymongo.MongoClient("mongodb+srv://vladha:"+urllib.parse.quote("")+"@cluster0.swken.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 mydb = myclient["Tracker"]
 mycol = mydb["Time"]
 
