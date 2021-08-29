@@ -1,140 +1,187 @@
 <!DOCTYPE html>
 <html>
   
-<head>
 
-<meta http-equiv="refresh" content="60">
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
 
-    <script src=
-"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js">
-    </script>
-    <script src=
-"https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js">
-    </script>
-    <link rel="stylesheet" href=
-"https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css">
-    <link rel="stylesheet" 
-        type="text/css" href=
-"https://use.fontawesome.com/releases/v5.6.3/css/all.css">
-  
-    <script type="text/javascript">
-        function showHideRow(row) {
-            $("#" + row).toggle();
-        }
-    </script>
+      
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<script>
-    function startTime() {
-      var today = new Date();
 
-      var d=today.getDate();
-      var mm =today.getMonth()+1;
-      var y =today.getFullYear();
-
-      var h = today.getHours();
-      var m = today.getMinutes();
-      var s = today.getSeconds();
-      m = checkTime(m);
-      s = checkTime(s);
-      document.getElementById('tm').innerHTML =  h + ":" + m;
-      document.getElementById('dt').innerHTML =  y+"-"+mm+"-"+d;
-      var t = setTimeout(startTime, 1000);
-    }
-    function checkTime(i) {
-      if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
-      return i;
-    }
-</script>
-
-  
-    <style>
-        body {
-            margin: 0 auto;
-            padding: 0px;
-            text-align: left;
-            width: 100%;
-            font-family: "Myriad Pro", 
-                "Helvetica Neue", Helvetica, 
-                Arial, Sans-Serif;
-        }
-  
-        #wrapper {
-            margin: 0 auto;
-            padding: 0px;
-            text-align: center;
-            width: 100%;
-        }
-  
-        #wrapper h1 {
-            margin-top: 50px;
-            font-size: 45px;
-            color:white;
-        }
-  
-        #wrapper h1 p {
-            font-size: 20px;
-        }
-  
-        #table_detail {
-            font-size: 20px;
-            text-align: left;
-            border:0px;
-            border-collapse: collapse;
-            border-spacing: 0px;
-
-            
-        }
-  
-        #table_detail tr:hover {
-            background-color:black;
-        }
-  
-        #table_detail .hidden_row {
-            display: none;
-        }
+      <title>RKBC Time Summary</title>
+      <style>body {font-family: Arial, sans-serif;}
     </style>
-</head>
+      <meta charset="utf-8"> 
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"> 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script> 
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script> 
+      
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+   
 
 
 
-
-
-    <body onload="startTime()">
-        
+      <!-- jQuery -->
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     
-    <div id="wrapper">
+      <!-- Fengyuan Chen's Datepicker -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datepicker/0.6.5/datepicker.min.css" integrity="sha256-b88RdwbRJEzRx95nCuuva+hO5ExvXXnpX+78h8DjyOE=" crossorigin="anonymous" />
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/datepicker/0.6.5/datepicker.min.js" integrity="sha256-/7FLTdzP6CfC1VBAj/rsp3Rinuuu9leMRGd354hvk0k=" crossorigin="anonymous"></script>
+
+      <style>
+
+* {
+  box-sizing: border-box;
+}
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+  padding: 10px;
   
-        <table class="table table-striped table-dark"  id="table_detail" align:left >
+}
+
+.frozen{
+    top:0;
+    
+}
+
+.left{
+    top:0;
+    width: 20%;
+  }
+
+ .right {
+  width: 50%;
   
-            <tr>
-                <td> <SPAN id="tm" style='color:#c19edf; font-size: 80px'></SPAN> <SPAN id="dt" style='color:rgb(248, 250, 252); font-size: 40px'></SPAN></td>
+}
+
+.middle {
+  width: 30%;
+}
+</style>
+
+    </head>
+    <body>
+    
+    <form action="{% url 'index' %}" method="get" enctype="text/plain">
+    
+      <input id="datepicker" title='From' name="from">
+      <input id="datepicker1" title='To' name="to">
+      <input id="key" title='key' name="search">
+
+      <input type="submit", value="Go", style="border: 1px solid green; padding:5px; border-radius: 2px; cursor: pointer;">
+      
+    </form>
+
+
+      <script>
+        $(function () {
+          $("#datepicker").datepicker();
+        });
+
+        $(function () {
+          $("#datepicker1").datepicker();
+        });
+      </script>
+       
+
+
+       
+
+
+<div class="container column left"> 
+        
+<table class="table table-dark table-striped"> 
+    <thead style="color:rgb(189, 181, 207)"> 
+    <tr> 
+        
+        <th>Group</th> 
+        <th>Hours</th> 
+    </tr> 
+    </thead> 
+    <tbody> 
+    <!-- jinja2 Technique -->
+    {% for i in d3 %} 
+    <TR>
+    
+    <TD>{{i.group}}</TD>
+    <TD><SPAN style="color:yellow">{{i.hours}}</SPAN></TD>
+    </TR>
+    {% endfor %} 
+
+    </tbody> 
+</table> 
+</div> 
+
+
+
+
+<div class="container column middle"> 
+    
+    <table class="table table-dark table-striped"> 
+        <thead style="color:rgb(189, 181, 207)"> 
+        <tr> 
+            <th>Name</th> 
+            <th>Group</th> 
+            <th>Hours</th> 
+        </tr> 
+        </thead> 
+        <tbody> 
+        <!-- jinja2 Technique -->
+        {% for i in d2 %} 
+        <TR>
+        <TD>{{i.name}}</TD>
+        <TD>{{i.group}}</TD>
+        <TD><SPAN style="color:yellow">{{i.hours}}</SPAN></TD>
+        </TR>
+        {% endfor %} 
+            
+        </tbody> 
+    </table> 
+</div> 
+
+    <div class="container column right"> 
+        
+        <table class="table table-dark table-striped"> 
+            <thead style="color:rgb(189, 181, 207)"> 
+            <tr> 
+                <th>Name</th> 
+                <th>Activity</th> 
+                <th>Hours</th> 
+            </tr> 
+            </thead> 
+            <tbody> 
+            <!-- jinja2 Technique -->
+            {% for i in d1 %} 
+            <TR>
+            <TD>{{i.name}}</TD>
+            <TD>{{i.activity}}</TD>
+            <TD><SPAN style="color:yellow">{{i.hours}}</SPAN></TD>
+            </TR>
+            {% endfor %} 
                 
-            </tr>
-            <tr><td> {% for item in markets %}<SPAN style='color:#e7c943'>{{ item.indexName }} {{ item.last }} ({{ item.percChange }}%)&nbsp;&nbsp;&nbsp;&nbsp;</SPAN>{% endfor %}</td></tr>
-            </tr>
+            </tbody> 
+        </table> 
+    </div> 
+        
         
 
-            {% for newsitem in newslist %}
+</body> 
+</html> 
             
-            
-            <tr>
-                
-                <TD  onclick="showHideRow('{{newsitem.id}}');"><SPAN style='color:rgb(248, 250, 252);'> {{newsitem.Published}}| <SPAN style='color:#b2ffff'>{{newsitem.Title}}|</SPAN>
-                    <SPAN style='color:rgb(0, 128, 21));'><a href='{{newsitem.link}}' target="_blank">{{newsitem.Source}}</a></SPAN><SPAN></a></SPAN>
-                    </TD>
-            </tr>
-            
-            <tr id="{{newsitem.id}}" class="hidden_row">
-                <td colspan=4>
-                    {{newsitem.Summary_Detail}}
-                </td>
-            </tr>
-            
+           
 
-            {% endfor %}
-            
-        </table>
-    </div>
+  
+                
 </body>
   
 </html>

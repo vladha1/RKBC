@@ -1,15 +1,13 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 import pandas as pd
+import json
 import operator
 import time
 import uuid
 from datetime import datetime
 from decimal import Decimal
 import requests
-from bs4 import BeautifulSoup
-from newscatcher import Newscatcher
-from newscatcher import urls
 import datefinder
 from operator import itemgetter
 import feedparser
@@ -18,190 +16,81 @@ import io
 import base64
 import urllib
 import numpy as np
-from pyowm.owm import OWM
-import tweepy
-import pytz
-from nsepython import *
-import yfinance as yf
+from typing import Dict
+import pymongo
+import pandas as pd
+import math
+myclient = pymongo.MongoClient("mongodb+srv://vladha:"+urllib.parse.quote("Carramba123@")+"@cluster0.swken.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+mydb = myclient["Tracker"]
+mycol = mydb["Time"]
+
+#'date', 'hours', 'notes', 'name', 'function', 'task_id',       'function_code', 'client_id', 'client', 'group_id', 'group'
+
+
+#query={'date':'25/08/21'}
+query={}
+
+
+def datestr(row):
+    dt=row['date']
+    result=dt[3:][:2]+"/"+dt[:2]+"/"+dt[-2:]
+    #print(type(dt))
+    #print(dt)
+    #print(result)
+    return result
+
 
 
 def home(request):
-    newslist=[]
-    searchcriteria=None
-    IndianURLs = urls(country = 'IN')
-    
-    searchcriteria = request.GET.get('search')
-    #print("criteria:",searchcriteria)
+    if "GET" == request.method:
 
-    det=[]
-    counter=0
-    for IndianURL in IndianURLs:
-         
-        nc = Newscatcher(website = IndianURL)
-        results = nc.get_news()
-        
-        if results is not None and results['articles'] is not None:
-            articles = results['articles']
-
-            for article in articles:
-               datesfound=datefinder.find_dates(article.published)
-               dateresult="x"
-               for match in datesfound:
-                
-                dateresult=match.strftime("%Y-%m-%d %H:%M")
-
-                txt=list(article.summary_detail.values())[3]
-                detailtext = BeautifulSoup(txt, "html.parser").get_text()                
-                
-                counter=counter+1
-                newslist=newslist+[{'Source':IndianURL,'Title':article.title,'Published':dateresult,'Summary_Detail':detailtext,'link':article.link,'id':"head_"+str(counter)}]
-
-    newslist=newslist+rssfeeds()+twitter()
-    newsdf=pd.DataFrame(newslist)
-    #if searchcriteria!=None:
-    #    newsdf=newsdf[(newsdf['Summary_Detail'].str.contains(searchcriteria))|(newsdf['Title'].str.contains(searchcriteria))|(newsdf['Source'].str.contains(searchcriteria))]
-
-    #print("type",type(newsdf))
-    newsdf=newsdf.sort_values(by=['Published'],ascending=False)
-    newslist=newsdf.to_dict('records')
-
-    #newslist_sorted=sorted(newslist, key= lambda i: i['Published'],reverse=True)
-
-                #newslist_sorted=newslist_sorted[newslist_sorted['Summary_Detail'].str.contains("Hwang")]
-    
-        
-    txt=str(newsdf['Title'])
-    
-    #wordcloud = wordcloudplot(txt)
-
-    #print("responding")
-
-    
-    return render(request, 'home.html', {'newslist':newslist,'markets':markets()})
-    
-
-def globalstocks(ticker):
-
-    # replace the "demo" apikey below with your own key from https://www.alphavantage.co/support/#api-key
-    #url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol='+ticker+'&interval=5min&apikey=LGMS48PFLKLHONKB'
-    #r = requests.get(url).json().get('Global Quote')
-    #print(type(r))
-    #print(r)
-    #print(r.keys())
-
-    stock = yf.Ticker(ticker)
-    data1= stock.info
-    price=data1.get('regularMarketPrice')
-    prevPrice=data1.get('previousClose')
-    #print("price:",price)
-    #print("prev:",prevPrice)
-    try:
-        percChange=round((price/data1.get('previousClose')-1)*100,1)
-    except:
-        percChange=0
-    response={'indexName':ticker,'last':price,'percChange':percChange}
-    return response
+        date1 = request.GET.get('from')
+        if date1:
+            date1=date1[:6]+date1[-2:]
 
 
+        date2 = request.GET.get('to')
+        if date2:
+            date2=date2[:6]+date2[-2:]
 
-def markets():
-        indices=['NIFTY 50','NIFTY BANK','NIFTY REALTY','NIFTY PHARMA','NIFTY PHARMA']
-        indexcols=nse_index()[['indexName','last','percChange']]
-        indexcols1=indexcols[indexcols['indexName'].isin(indices)].to_dict('r')
-        #print(indexcols1)
-        tickers=set(['GLD','QQQ','^N225','^GDAXI','^FTSE','^FCHI'])
+        search = request.GET.get('search')
+        print(date1,date2,search)
 
-        for ticker in tickers:
-            indexcol1=indexcols1.append(globalstocks(ticker))
-        
-        #print(indexcol1)
-
-        return indexcols1
-
-
-    
-
-
-def rssfeeds():
-
-    feedsources=['https://www.indiainfoline.com/rss/news.xml','http://feeds.feedburner.com/nseindia/results','https://www.reutersagency.com/feed/?best-regions=asia&post_type=best','https://www.investing.com/rss/news.rss','https://www.cnbc.com/id/19746125/device/rss/rss.xml','https://www.financialexpress.com/feed/','https://www.news18.com/rss/business.xml','https://www.business-standard.com/rss/markets-106.rss','https://economictimes.indiatimes.com/rssfeedsdefault.cms','https://www.moneycontrol.com/rss/MCtopnews.xml','https://www.thehindu.com/business/feeder/default.rss']
-    news=[]
-    counter=0
-    for feedsource in feedsources:
-        
-        NewsFeed = feedparser.parse(feedsource)
-        for items in NewsFeed.entries:
-            newsitem={}
-            counter=counter+1
-            newsitem['id']="head1_"+str(counter)
-            newsitem['Source']=NewsFeed.feed.title
-            if NewsFeed.feed.title=="Latest News":
-                newsitem['Source']="Business Standard"
-            elif NewsFeed.feed.title=="Top News and Analysis (pro)":
-                newsitem['Source']="CNBC"
-            elif NewsFeed.feed.title=="All News":
-                newsitem['Source']="Investing.com"
-
-            newsitem['Title']=items.get('title')
-
-            if NewsFeed.feed.title=="All News":
-                newsitem['Summary_Detail']=items.get('title')
-            else:
-                newsitem['Summary_Detail']=items.get('summary')
-            
-            newsitem['link']=items.get('link')
-            datesfound=datefinder.find_dates(items.get('published'))
-            dateresult="x"
-            for match in datesfound:
-                dateresult=match.strftime("%Y-%m-%d %H:%M")
-            
-            newsitem['Published']=dateresult
-            news=news+[newsitem]
-    return news
-    
-
-
-
-
-
-def twitter():
-    tweetnews=[]
+       
+    timedatafull=list(mycol.find(query))
+    df=pd.DataFrame(timedatafull)
     
     
-    api = tweepy.API(auth)
-    handles=set(['CNBCTV18Live','ReutersIndia','NDTVProfit','forbes_india','moneycontrolcom','ETNOWlive','ETmarkets','ReutersIndia','EconomicTimes','NDTVProfit','forbes_india','moneycontrolcom','ETNOWlive','BloombergTV','CNBCTV18Live','@BT_India','NSEIndia','TOIBusiness','IIFL_Live','FinancialTimes','BloombergQuint','WSJMarkets'])
+    df['key']=df['group']+"-"+df['function']+df['client']+df['name']
+    df['key']=df['key'].fillna("nothing")
+    
+    df['strdt']=df.apply(datestr,axis=1)
+    #print(df)
 
-    tweets=[]
-    for handle in handles:
-        try:
-            tweets = tweets + api.user_timeline(screen_name=handle, 
-                                # 200 is the maximum allowed count
-                                
-                                include_rts = False,
-                                # Necessary to keep full_text 
-                                exclude_replies = True,
-                                # otherwise only the first 140 words are extracted
-                                tweet_mode = 'extended'
-                                )
-        except:
-            print(handle," not valid")
+    
+    if search:
+        df=df[df['key'].str.contains(search,case=False)]
+    
+    if date1 and len(date1)>0:
+        df=df[df['strdt']>=date1]
+    
+    if date2 and len(date2)>0:
+        df=df[df['strdt']<=date2]
 
-    utctz=pytz.timezone('UTC')
-    intz = pytz.timezone('Asia/Calcutta')
+    df['activity']=df['group']+"-"+df['function']
 
-    for info in tweets:
 
-        source="Twitter-"+info.user.name
-        id=info.id
-        created_at=utctz.localize(info.created_at)
-        created_at_local=created_at.astimezone(intz)
-        published=created_at_local.strftime("%Y-%m-%d %H:%M")
-        fulltextlist=info.full_text.split("http")
-        Title=fulltextlist[0]
-        if len(fulltextlist)>1:
-            url="http"+fulltextlist[1]
-        else:
-            url=""
-        
-        tweetnews=tweetnews+[{'Source':source,'Title':Title,'Published':published,'Summary_Detail':"",'link':url,'id':id}]
-    return tweetnews
+    df1=df.groupby(['activity','name'])['hours'].sum().reset_index().sort_values(by=['activity','hours'],ascending=False)
+    d1 = json.loads(df1.to_json(orient ='records') )
+    
+    
+    df2=df.groupby(['group','name'])['hours'].sum().reset_index().sort_values(by=['group','hours'],ascending=False)
+    d2 = json.loads(df2.to_json(orient ='records') )
+    
+    
+    df3=df.groupby(['group'])['hours'].sum().reset_index().sort_values(by=['hours'],ascending=False)
+    d3 = json.loads(df3.to_json(orient ='records') )
+    
+    return render(request, 'home.html', {'d1':d1,'d2':d2,'d3':d3})
+
+

@@ -25,7 +25,7 @@ SECRET_KEY = '56adz_4&)0lm3e)-$jgb*f^onpqgfck)f1ot!_%(gqj!x3$6$('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.3.27']
+ALLOWED_HOSTS = ['192.168.3.27','192.0.0.7']
 
 # Application definition
 
@@ -72,13 +72,20 @@ WSGI_APPLICATION = 'wordcount.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        "CLIENT": {
+           "name": 'tracker',
+           "host": "mongodb+srv://vladha:Carramba123@cluster0.swken.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+           "username": "vladha",
+           "password": "Carramba123@",
+           "authMechanism": "SCRAM-SHA-1",
+        }, 
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
